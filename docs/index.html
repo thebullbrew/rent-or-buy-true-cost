@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rent or Buy? — The True Cost</title>
+<meta name="description" content="Rent-vs-buy math that counts the down payment's opportunity cost. One honest number, year by year.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0C150D">
+<link rel="icon" href="icons/icon-32.png">
+<style>
+:root{
+  --bg:#0C150D; --surface:#142014; --surface2:#101A10; --text:#EFF0E2;
+  --muted:#B9BFA8; --accent:#A89B5C; --accent2:#2E4A2E; --moss:#6E8F5E;
+  --good:#9DBE8C; --bad:#D08C7A; --hair:rgba(168,155,92,.35);
+}
+*{box-sizing:border-box; margin:0; padding:0}
+body{background:var(--bg); color:var(--text);
+  font-family:Georgia,'Times New Roman',serif; line-height:1.55; padding:0 0 4rem}
+.wrap{max-width:1020px; margin:0 auto; padding:0 1.1rem}
+header.hero{text-align:center; padding:2.6rem 1rem 1.6rem; position:relative}
+header.hero::after{content:"❦ ❦ ❦"; display:block; color:var(--accent);
+  letter-spacing:.6em; margin-top:1.1rem; font-size:.85rem; opacity:.8}
+.eyebrow{color:var(--accent); text-transform:uppercase; letter-spacing:.28em;
+  font-size:.72rem; margin-bottom:.7rem}
+h1{font-size:clamp(2rem,5vw,3.1rem); font-weight:400; letter-spacing:.01em}
+h1 em{color:var(--accent); font-style:italic}
+.sub{color:var(--muted); max-width:640px; margin:.9rem auto 0; font-style:italic}
+.card{background:linear-gradient(180deg,rgba(46,74,46,.28),rgba(0,0,0,0) 38%),var(--surface);
+  border:1px solid var(--hair); border-radius:10px; padding:1.4rem; margin:1.2rem 0}
+.card h2{font-weight:400; font-size:1.35rem; margin-bottom:.3rem}
+.card h2 .orn{color:var(--accent); margin-right:.5rem}
+.rule{border:none; border-top:1px solid var(--hair); margin:1.4rem 0; position:relative}
+.rule::after{content:"❦"; position:absolute; top:-.72em; left:50%; transform:translateX(-50%);
+  background:var(--surface); padding:0 .6em; color:var(--accent); font-size:.85rem}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem}
+@media(max-width:720px){.grid2{grid-template-columns:1fr}}
+.field{margin:.85rem 0}
+label{display:flex; justify-content:space-between; color:var(--muted);
+  font-size:.85rem; letter-spacing:.04em; margin-bottom:.3rem}
+label output{color:var(--accent); font-size:1rem}
+input[type=range]{width:100%; accent-color:var(--accent); height:1.6rem; background:transparent}
+input[type=number],input[type=text]{width:100%; background:var(--surface2);
+  border:1px solid var(--hair); color:var(--text); border-radius:6px;
+  padding:.55rem .7rem; font-family:inherit; font-size:1rem}
+input:focus{outline:1px solid var(--accent)}
+.btn{background:var(--accent2); color:var(--text); border:1px solid var(--accent);
+  padding:.7rem 1.4rem; border-radius:6px; font-family:inherit; font-size:1rem;
+  cursor:pointer; letter-spacing:.03em}
+.btn:hover{background:#3A5A38}
+.btn.ghost{background:transparent}
+.verdict{text-align:center; padding:2rem 1rem}
+.verdict .big{font-size:clamp(2.2rem,6vw,3.4rem); color:var(--accent); margin:.4rem 0}
+.verdict .big small{font-size:1.1rem; color:var(--muted)}
+.vtag{display:inline-block; border:1px solid var(--accent); border-radius:999px;
+  padding:.25rem 1.1rem; letter-spacing:.22em; font-size:.72rem; text-transform:uppercase;
+  color:var(--accent); margin-bottom:.8rem}
+.kv{display:flex; justify-content:space-between; padding:.5rem 0;
+  border-bottom:1px solid rgba(168,155,92,.16); font-size:.95rem}
+.kv:last-child{border-bottom:none}
+.kv b{color:var(--accent); font-weight:400}
+.kv .k{color:var(--muted)}
+canvas#chart{width:100%; height:300px; display:block; margin-top:.6rem}
+table{width:100%; border-collapse:collapse; font-size:.85rem; margin-top:.8rem}
+th{color:var(--accent); font-weight:400; text-align:right; padding:.45rem .4rem;
+  border-bottom:1px solid var(--hair); letter-spacing:.05em; font-size:.78rem}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right; padding:.42rem .4rem; border-bottom:1px solid rgba(168,155,92,.12);
+  font-variant-numeric:tabular-nums}
+td.neg{color:var(--bad)} td.pos{color:var(--good)}
+.note{color:var(--muted); font-size:.88rem; font-style:italic}
+.scn{display:flex; justify-content:space-between; align-items:center;
+  padding:.55rem 0; border-bottom:1px solid rgba(168,155,92,.16); font-size:.92rem}
+.scn button{background:none; border:none; color:var(--bad); cursor:pointer; font-size:.85rem}
+footer{text-align:center; color:var(--muted); font-size:.82rem; margin-top:2.5rem; font-style:italic}
+.pill{display:inline-block; font-size:.75rem; border:1px solid var(--hair);
+  border-radius:999px; padding:.15rem .7rem; color:var(--muted); margin:.15rem .25rem 0 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">A field guide for the undecided</div>
+  <h1>Rent or Buy? <em>The True Cost.</em></h1>
+  <p class="sub">Every rent-vs-buy calculator lies by omission: they price the mortgage and forget the money. This one counts what your down payment could have earned while it sat in the walls. One honest number, year by year.</p>
+</header>
+
+<div class="card">
+  <h2><span class="orn">❦</span>The deal on the table</h2>
+  <p class="note">Set both sides, then read the verdict. Assumptions live below — drag the sliders and watch the honest number move.</p>
+  <div class="grid2">
+    <div>
+      <h2 style="font-size:1.05rem;color:var(--accent)">Buying</h2>
+      <div class="field"><label>Home price <output id="o-price"></output></label><input type="range" id="i-price" min="100000" max="2000000" step="5000" value="450000"></div>
+      <div class="field"><label>Down payment <output id="o-dp"></output></label><input type="range" id="i-dp" min="0" max="50" step="1" value="20"></div>
+      <div class="field"><label>Mortgage rate <output id="o-rate"></output></label><input type="range" id="i-rate" min="3" max="10" step="0.125" value="6.5"></div>
+      <div class="field"><label>Property tax /yr <output id="o-tax"></output></label><input type="range" id="i-tax" min="0" max="30000" step="100" value="8000"></div>
+      <div class="field"><label>Insurance /yr <output id="o-ins"></output></label><input type="range" id="i-ins" min="0" max="8000" step="50" value="1500"></div>
+      <div class="field"><label>HOA /mo <output id="o-hoa"></output></label><input type="range" id="i-hoa" min="0" max="1000" step="10" value="0"></div>
+      <div class="field"><label>Maintenance % of value /yr <output id="o-maint"></output></label><input type="range" id="i-maint" min="0" max="3" step="0.25" value="1"></div>
+      <div class="field"><label>Closing costs % <output id="o-close"></output></label><input type="range" id="i-close" min="0" max="6" step="0.25" value="3"></div>
+      <div class="field"><label>Home appreciation /yr <output id="o-appr"></output></label><input type="range" id="i-appr" min="0" max="8" step="0.25" value="3"></div>
+    </div>
+    <div>
+      <h2 style="font-size:1.05rem;color:var(--accent)">Renting</h2>
+      <div class="field"><label>Monthly rent today <output id="o-rent"></output></label><input type="range" id="i-rent" min="500" max="8000" step="50" value="2400"></div>
+      <div class="field"><label>Rent increase /yr <output id="o-rinf"></output></label><input type="range" id="i-rinf" min="0" max="8" step="0.25" value="3"></div>
+      <div class="field"><label>Your money's return <output id="o-ret"></output></label><input type="range" id="i-ret" min="0" max="12" step="0.25" value="7"></div>
+      <p class="note" style="margin-top:.4rem">This is the opportunity-cost lever: the annual return the down payment + closing costs would earn if they stayed invested instead of moving into the walls. 7% is the long-run stock market neighborhood.</p>
+      <div class="field"><label>How long you'll stay <output id="o-years"></output></label><input type="range" id="i-years" min="1" max="30" step="1" value="10"></div>
+    </div>
+  </div>
+</div>
+
+<div class="card verdict">
+  <div class="vtag" id="v-tag">Verdict</div>
+  <div class="big" id="v-big">—</div>
+  <p class="note" id="v-line" style="max-width:620px;margin:0 auto"></p>
+  <hr class="rule">
+  <div class="kv"><span class="k">Breakeven year (buying pulls ahead)</span><b id="k-break">—</b></div>
+  <div class="kv"><span class="k">True cost of buying, per day over the horizon</span><b id="k-buyday">—</b></div>
+  <div class="kv"><span class="k">True cost of renting, per day over the horizon</span><b id="k-rentday">—</b></div>
+  <div class="kv"><span class="k">The down payment's missed earnings (opportunity cost)</span><b id="k-opp">—</b></div>
+</div>
+
+<div class="card">
+  <h2><span class="orn">❦</span>The honest number, year by year</h2>
+  <p class="note">Cumulative wealth advantage of buying over renting. Above the line: buying made you richer. Below it: the renter's bank account won.</p>
+  <canvas id="chart"></canvas>
+  <div style="overflow-x:auto">
+  <table id="ytable">
+    <thead><tr><th>Year</th><th>Buy: net wealth</th><th>Rent: net wealth</th><th>Buy − Rent</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+</div>
+
+<div class="card">
+  <h2><span class="orn">❦</span>Why the usual calculators flatter buying</h2>
+  <div class="kv"><span class="k">Principal paydown counts as savings, not cost</span><b>counted ✓</b></div>
+  <div class="kv"><span class="k">The down payment could have earned ~<span id="n-ret">7</span>%/yr invested</span><b>counted ✓</b></div>
+  <div class="kv"><span class="k">Closing costs are sunk on day one</span><b>counted ✓</b></div>
+  <div class="kv"><span class="k">Rent rises; so do taxes, insurance, and maintenance</span><b>counted ✓</b></div>
+  <div class="kv"><span class="k">Selling costs at the end (realtor fees, etc.)</span><b>assumed ~6%</b></div>
+  <p class="note" style="margin-top:1rem">This is wealth math, not cash-flow math. Buying can win on net worth while still feeling tighter month to month — the chart shows the trade honestly.</p>
+</div>
+
+<div class="card">
+  <h2><span class="orn">❦</span>Saved scenarios</h2>
+  <div style="display:flex;gap:.6rem;margin:.8rem 0">
+    <input type="text" id="scn-name" placeholder="Name this scenario — e.g. 'Asbury 2BR vs renting'" style="flex:1">
+    <button class="btn" id="btn-save">Save</button>
+    <button class="btn ghost" id="btn-copy">Copy summary</button>
+  </div>
+  <div id="scn-list"><p class="note">No saved scenarios yet. Tune the sliders, save the interesting ones, compare with a cool head.</p></div>
+</div>
+
+<footer>The Bull Brew · one useful tool every day · numbers are estimates, not advice</footer>
+</div>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const fmt$ = n => (n<0?"−$":"$") + Math.abs(Math.round(n)).toLocaleString("en-US");
+const fmt$2 = n => (n<0?"−":"+") + "$" + Math.abs(Math.round(n)).toLocaleString("en-US");
+
+const INPUTS = [
+  ["i-price","o-price", v=>fmt$(v)],
+  ["i-dp","o-dp", v=>v+"% · "+fmt$(v/100*$("i-price").value)],
+  ["i-rate","o-rate", v=>v+"%"],
+  ["i-tax","o-tax", v=>fmt$(v)+"/yr"],
+  ["i-ins","o-ins", v=>fmt$(v)+"/yr"],
+  ["i-hoa","o-hoa", v=>fmt$(v)+"/mo"],
+  ["i-maint","o-maint", v=>v+"%"],
+  ["i-close","o-close", v=>v+"%"],
+  ["i-appr","o-appr", v=>v+"%"],
+  ["i-rent","o-rent", v=>fmt$(v)+"/mo"],
+  ["i-rinf","o-rinf", v=>v+"%"],
+  ["i-ret","o-ret", v=>v+"%"],
+  ["i-years","o-years", v=>v+(+v===1?" year":" years")],
+];
+
+function compute(){
+  const P=+$("i-price").value, dp=+$("i-dp").value/100, rate=+$("i-rate").value/100,
+        tax=+$("i-tax").value, ins=+$("i-ins").value, hoa=+$("i-hoa").value,
+        maint=+$("i-maint").value/100, close=+$("i-close").value/100,
+        appr=+$("i-appr").value/100, rent0=+$("i-rent").value,
+        rinf=+$("i-rinf").value/100, ret=+$("i-ret").value/100, N=+$("i-years").value;
+  $("n-ret").textContent = ($("i-ret").value);
+
+  const D=P*dp, C=P*close, L=P-D, mr=rate/12;
+  const PI = mr>0 ? L*mr/(1-Math.pow(1+mr,-360)) : L/360;
+
+  const rows=[]; let outCum=D+C, rentCum=0, breakeven=null;
+  for(let t=1;t<=N;t++){
+    const k=12*t, g=Math.pow(1+mr,k);
+    const B = mr>0 ? L*g - PI*((g-1)/mr) : L - PI*k;
+    const V = P*Math.pow(1+appr,t);
+    const E = V - Math.max(B,0);
+    outCum += PI*12 + tax + ins + hoa*12 + V*maint;
+    rentCum += rent0*12*Math.pow(1+rinf,t-1);
+    const invested = (D+C)*Math.pow(1+ret,t);
+    const buyNet  = E - 0.06*V - outCum;      // sold that year, realtor cut
+    const rentNet = invested - rentCum;
+    const adv = buyNet - rentNet;
+    if(breakeven===null && adv>=0) breakeven=t;
+    rows.push({t, buyNet, rentNet, adv, V});
+  }
+  const fin = rows[rows.length-1];
+  const adv = fin.adv;
+  $("v-tag").textContent = adv>=0 ? "Buying wins" : "Renting wins";
+  $("v-big").innerHTML = fmt$2(adv) + " <small>over "+N+" yr</small>";
+  $("v-line").textContent = adv>=0
+    ? "After every honest cost — and after pricing what your down payment could have earned — buying leaves you "+fmt$(adv)+" richer than renting over "+N+" years. The walls paid you."
+    : "After every honest cost — and after pricing what your down payment could have earned — renting leaves you "+fmt$(-adv)+" richer than buying over "+N+" years. The market paid better than the mortgage.";
+  $("k-break").textContent = breakeven===null ? "Never in "+N+" years" : "Year "+breakeven;
+  $("k-buyday").textContent  = fmt$(-fin.buyNet /(N*365))  + "/day";
+  $("k-rentday").textContent = fmt$(-fin.rentNet/(N*365)) + "/day";
+  $("k-opp").textContent = fmt$((D+C)*(Math.pow(1+ret,N)-1)) + " of missed earnings";
+
+  // chart
+  const cv=$("chart"), ctx=cv.getContext("2d");
+  const W=cv.clientWidth, H=300, dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr; cv.height=H*dpr; ctx.scale(dpr,dpr);
+  const vals=rows.map(r=>r.adv), mn=Math.min(0,...vals), mx=Math.max(0,...vals), pad=(mx-mn)||1;
+  const X=t=>40+(t-1)/(N-1||1)*(W-60), Y=v=>H-30-(v-mn)/pad*(H-60);
+  ctx.strokeStyle="rgba(168,155,92,.25)"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(40,Y(0)); ctx.lineTo(W-20,Y(0)); ctx.stroke();
+  ctx.fillStyle="#B9BFA8"; ctx.font="11px Georgia";
+  for(let t=1;t<=N;t+=Math.ceil(N/8)) ctx.fillText("yr "+t, X(t)-8, H-10);
+  const grad=ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,"rgba(168,155,92,.35)"); grad.addColorStop(1,"rgba(168,155,92,0)");
+  ctx.beginPath(); rows.forEach((r,i)=> i?ctx.lineTo(X(r.t),Y(r.adv)):ctx.moveTo(X(r.t),Y(r.adv)));
+  ctx.strokeStyle="#A89B5C"; ctx.lineWidth=2.5; ctx.stroke();
+  ctx.lineTo(X(N),Y(0)); ctx.lineTo(X(1),Y(0)); ctx.closePath();
+  ctx.fillStyle=grad; ctx.fill();
+
+  // table
+  const tb=$("ytable").querySelector("tbody"); tb.innerHTML="";
+  rows.forEach(r=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML="<td>"+r.t+"</td><td>"+fmt$(r.buyNet)+"</td><td>"+fmt$(r.rentNet)+
+      '</td><td class="'+(r.adv>=0?"pos":"neg")+'">'+fmt$2(r.adv)+"</td>";
+    tb.appendChild(tr);
+  });
+}
+
+function snapshot(){
+  const s={}; INPUTS.forEach(([i])=> s[i]=$("i-"+i.slice(2)).value || $(i).value);
+  return s;
+}
+function restore(s){ INPUTS.forEach(([i])=>{ if(s[i]!==undefined) $(i).value=s[i]; }); paint(); }
+
+function paint(){
+  INPUTS.forEach(([i,o,f])=>{ $(o).textContent=f(+$(i).value); });
+  compute();
+}
+INPUTS.forEach(([i])=> $(i).addEventListener("input", paint));
+
+const LS="rentorbuy-scenarios-v1";
+function loadScn(){ try{return JSON.parse(localStorage.getItem(LS))||[]}catch(e){return[]} }
+function renderScn(){
+  const list=loadScn(), el=$("scn-list");
+  if(!list.length){ el.innerHTML='<p class="note">No saved scenarios yet. Tune the sliders, save the interesting ones, compare with a cool head.</p>'; return; }
+  el.innerHTML="";
+  list.forEach((s,idx)=>{
+    const d=document.createElement("div"); d.className="scn";
+    d.innerHTML='<span><b style="color:var(--accent)">'+s.name+'</b> <span class="note">'+s.note+"</span></span>";
+    const b=document.createElement("button"); b.textContent="remove";
+    b.onclick=()=>{ const l=loadScn(); l.splice(idx,1); localStorage.setItem(LS,JSON.stringify(l)); renderScn(); };
+    d.onclick=e=>{ if(e.target!==b) restore(s.vals); };
+    d.style.cursor="pointer"; d.appendChild(b); el.appendChild(d);
+  });
+}
+$("btn-save").onclick=()=>{
+  const name=$("scn-name").value.trim()||("Scenario "+(loadScn().length+1));
+  const adv=document.querySelector("#ytable tbody tr:last-child td:last-child").textContent;
+  const l=loadScn(); l.push({name, note:"buy − rent = "+adv, vals:snapshot()});
+  localStorage.setItem(LS,JSON.stringify(l)); $("scn-name").value=""; renderScn();
+};
+$("btn-copy").onclick=()=>{
+  const adv=$("v-big").textContent.trim(), tag=$("v-tag").textContent;
+  const txt="Rent or Buy? — True Cost\n"+tag+": "+adv+"\n"+
+    "Breakeven: "+$("k-break").textContent+"\n"+
+    "Buy cost/day: "+$("k-buyday").textContent+" · Rent cost/day: "+$("k-rentday").textContent+"\n"+
+    "Down payment's missed earnings: "+$("k-opp").textContent+"\n"+
+    "Price $"+(+$("i-price").value).toLocaleString()+" · down "+$("i-dp").value+"% · rate "+$("i-rate").value+"% · rent $"+(+$("i-rent").value).toLocaleString()+"/mo · horizon "+$("i-years").value+"yr";
+  navigator.clipboard.writeText(txt).then(()=>{ $("btn-copy").textContent="Copied ✓"; setTimeout(()=>$("btn-copy").textContent="Copy summary",1500); });
+};
+
+paint(); renderScn();
+if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
